@@ -16,17 +16,20 @@ def run():
     client.loop_start()
 
     while True:
-        now = datetime.now();
-        if now > expire:
-            log.info("token expired: " + expire + " , " + str(now))
+        try:
+            now = datetime.now()
+            if now > expire:
+                log.info("token expired: " + expire + " , " + str(now))
+                token, secret, expire = shinemonitor.login(log)
+
+            energy_now_msg = shinemonitor.get_energy_now(log, token, secret)
+            mqtt.publish(log, client, config.topic_actual, energy_now_msg)
+
+            energy_total_msg = shinemonitor.get_energy_total(log, token, secret)
+            mqtt.publish(log, client, config.topic_total, energy_total_msg)
+        except:
+            log.error("Exception occurred, try login again.")
             token, secret, expire = shinemonitor.login(log)
-
-        energy_now_msg = shinemonitor.get_energy_now(log, token, secret)
-        mqtt.publish(log, client, config.topic_actual, energy_now_msg)
-
-        energy_total_msg = shinemonitor.get_energy_total(log, token, secret)
-        mqtt.publish(log, client, config.topic_total, energy_total_msg)
-
 
 if __name__ == '__main__':
     run()
